@@ -1,8 +1,8 @@
 use anyhow::Result;
 
 pub struct BufferReader<'a> {
-    buffer: &'a [u8],
-    pos: usize,
+    pub buffer: &'a [u8],
+    pub pos: usize,
 }
 
 impl<'a> BufferReader<'a> {
@@ -10,32 +10,41 @@ impl<'a> BufferReader<'a> {
         Self { buffer, pos: 0 }
     }
 
-    pub fn read_u8(&mut self) -> Result<u8> {
+    pub fn has_next(&self) -> bool {
+        self.pos < self.buffer.len()
+    }
+
+    pub fn set_buffer(&mut self, pos: usize, buffer: &'a [u8]) {
+        self.buffer = buffer;
+        self.pos = pos;
+    }
+
+    pub fn read_byte(&mut self) -> Result<u8> {
         let res = self.buffer[self.pos];
         self.pos += 1;
 
         Ok(res)
     }
 
-    pub fn read_u16(&mut self) -> Result<u16> {
+    pub fn read_i16(&mut self) -> Result<i16> {
         let bytes: [u8; 2] = self.buffer[self.pos..self.pos + 2].try_into()?;
-        let res = u16::from_be_bytes(bytes);
+        let res = i16::from_be_bytes(bytes);
         self.pos += 2;
 
         Ok(res)
     }
 
-    pub fn read_u32(&mut self) -> Result<u32> {
+    pub fn read_i32(&mut self) -> Result<i32> {
         let bytes: [u8; 4] = self.buffer[self.pos..self.pos + 4].try_into()?;
-        let res = u32::from_be_bytes(bytes);
+        let res = i32::from_be_bytes(bytes);
         self.pos += 4;
 
         Ok(res)
     }
 
-    pub fn read_u64(&mut self) -> Result<u64> {
+    pub fn read_i64(&mut self) -> Result<i64> {
         let bytes: [u8; 8] = self.buffer[self.pos..self.pos + 8].try_into()?;
-        let res = u64::from_be_bytes(bytes);
+        let res = i64::from_be_bytes(bytes);
         self.pos += 8;
 
         Ok(res)

@@ -1,6 +1,7 @@
 use anyhow::Result;
 use websocket::{ClientBuilder, Message, OwnedMessage};
 mod buffer_reader;
+mod parser;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -11,7 +12,7 @@ async fn main() -> Result<()> {
             .unwrap();
 
     let login_query = generate_login("filipton", "9l2FcxtusEYC", "neondb");
-    let generate_query = generate_query("SELECT * FROM tests2");
+    let generate_query = generate_query("SELECT * FROM tests");
     println!("{:?}", hex::encode(&generate_query));
 
     ws_client
@@ -26,37 +27,9 @@ async fn main() -> Result<()> {
         .unwrap();
     let msg = ws_client.recv_message().unwrap();
     if let OwnedMessage::Binary(bytes) = msg {
-        let mut reader = buffer_reader::BufferReader::new(&bytes);
-        let msg_code = reader.read_u8().unwrap();
-        let msg_len = reader.read_u32().unwrap();
-        println!("msg_code: {}, msg_len: {}", msg_code, msg_len);
-
-        if msg_code == 0x54 {
-            let num_fields = reader.read_u16().unwrap();
-            println!("num_fields: {}", num_fields);
-
-            for _ in 0..num_fields {
-                parse_field(&mut reader)?;
-            }
-        }
+        let mut parser = parser::Parser::new(&bytes);
+        _ = parser.parse();
     }
-
-    Ok(())
-}
-
-fn parse_field(reader: &mut buffer_reader::BufferReader) -> Result<()> {
-    let name = reader.read_cstring()?;
-    let table_id = reader.read_u32()?;
-    let column_id = reader.read_u16()?;
-    let data_type = reader.read_u32()?;
-    let data_type_size = reader.read_u16()?;
-    let data_type_modifier = reader.read_u32()?;
-    let mode = reader.read_u16()?;
-
-    println!(
-        "name: {}, table_id: {}, column_id: {}, data_type: {}, data_type_size: {}, data_type_modifier: {}, mode: {}",
-        name, table_id, column_id, data_type, data_type_size, data_type_modifier, mode
-    );
 
     Ok(())
 }
