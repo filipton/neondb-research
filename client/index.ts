@@ -9,6 +9,8 @@ const pool = new Pool({ connectionString: process.env.DB })
 pool.query('SELECT now()').then((x) => {
     console.log(x);
 });
+/*
 pool.query(fs.readFileSync('./data.txt').toString()).then((x) => {
     console.log(x);
 });
+*/
