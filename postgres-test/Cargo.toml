@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 hex = "0.4.3"
+tokio = { version = "1.28.0", features = ["full"] }
+tokio-tungstenite = "0.18.0"
+websocket = "0.26.5"
