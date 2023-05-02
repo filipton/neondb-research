@@ -15,12 +15,13 @@ wss.on('connection', function connection(ws: any) {
     ws.on('error', console.error);
 
     ws.on('message', function message(data: any) {
-        let sdata = data.toString("hex").match(/../g).join(" ").split(" 00 51 00 ");
+        let sdata = data.toString("hex").match(/../g).join(" ").split(" 00 51 ");
         // sdata[0] - connection details
 
         console.log(sdata[0] + " 00");
         console.log();
-        console.log("51 00 " + sdata[1]);
+        console.log(sdata[1].slice(0, 20));
+        //console.log("51 00 " + sdata[1]);
         console.log("=================================================================");
     });
 
