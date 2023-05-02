@@ -42,14 +42,6 @@ impl<'a> BufferReader<'a> {
         Ok(res)
     }
 
-    pub fn read_i64(&mut self) -> Result<i64> {
-        let bytes: [u8; 8] = self.buffer[self.pos..self.pos + 8].try_into()?;
-        let res = i64::from_be_bytes(bytes);
-        self.pos += 8;
-
-        Ok(res)
-    }
-
     pub fn read_string(&mut self, length: usize) -> Result<String> {
         let res = String::from_utf8_lossy(&self.buffer[self.pos..self.pos + length]).to_string();
         self.pos += length;

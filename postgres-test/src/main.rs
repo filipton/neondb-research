@@ -1,10 +1,45 @@
+use std::collections::HashMap;
+
 use anyhow::Result;
 use websocket::{ClientBuilder, Message, OwnedMessage};
+
+use crate::buffer_writer::BufferWriter;
 mod buffer_reader;
+mod buffer_writer;
 mod parser;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let mut opts: Vec<(&str, &str)> = Vec::new();
+    opts.push(("user", "filipton"));
+    opts.push(("database", "neondb"));
+    opts.push(("client_encoding", "UTF8"));
+
+    let mut writer = buffer_writer::BufferWriter::new();
+    writer.write_i16(3).write_i16(0);
+
+    for (key, value) in opts {
+        writer.write_cstring(&key).write_cstring(&value);
+    }
+
+    let mut password_writer = buffer_writer::BufferWriter::new();
+    let password = password_writer
+        .write_cstring("9l2FcxtusEYC")
+        .flush(Some(b'p'));
+
+    println!("{:?}", hex::encode_upper(&password));
+
+    let length = writer.get_length();
+    let body = writer.write_cstring("").add(&password).flush(None);
+
+    let res = BufferWriter::new()
+        .write_i32(length as i32)
+        .add(&body)
+        .flush(None);
+
+    println!("{:?}", hex::encode_upper(res));
+    return Ok(());
+
     let mut ws_client =
         ClientBuilder::new("wss://ep-steep-mud-147485.eu-central-1.aws.neon.tech/v2")
             .unwrap()
