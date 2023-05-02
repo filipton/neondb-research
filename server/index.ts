@@ -15,7 +15,8 @@ wss.on('connection', function connection(ws: any) {
     ws.on('error', console.error);
 
     ws.on('message', function message(data: any) {
-        console.log(data.toString("hex"));
+        console.log(data.toString("hex").match(/../g).join(" "));
+        console.log();
     });
 
     ws.send('something');

@@ -4,6 +4,7 @@ neonConfig.webSocketConstructor = ws;
 neonConfig.wsProxy = "localhost:8080";
 neonConfig.useSecureWebSocket = false;
 
+console.log(process.env.DB);
 const pool = new Pool({ connectionString: process.env.DB })
 pool.query('').then((x) => {
     console.log(x);
