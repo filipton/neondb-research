@@ -32,3 +32,7 @@
 - **00 00 00 06** - query length  + 5(?)
 - **31** - query ...
 - **00** - one blank at the end
+
+## Responses:
+### Error:
+First bit is 45 (E)
