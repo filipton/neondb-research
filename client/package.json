@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@neondatabase/serverless": "^0.4.3",
+    "typescript": "^5.0.4",
+    "ws": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.4"
+  }
+}
