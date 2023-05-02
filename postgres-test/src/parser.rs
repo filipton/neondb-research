@@ -91,20 +91,20 @@ impl<'a> Parser<'a> {
                 MessageCodes::RowDescriptionMessage => {
                     let num_fields = self.reader.read_i16()?;
                     for _ in 0..num_fields {
-                        println!("name {}", self.reader.read_cstring()?);
-                        println!("table_id {}", self.reader.read_i32()?);
-                        println!("column_id {}", self.reader.read_i16()?);
-                        println!("type_id {}", self.reader.read_i32()?);
-                        println!("type_size {}", self.reader.read_i16()?);
-                        println!("type_modifier {}", self.reader.read_i32()?);
-                        println!("mode {}", self.reader.read_i16()?);
+                        _ = self.reader.read_cstring()?; // name
+                        _ = self.reader.read_i32()?; // table_id
+                        _ = self.reader.read_i16()?; // column_id
+                        _ = self.reader.read_i32()?; // type_id
+                        _ = self.reader.read_i16()?; // type_size
+                        _ = self.reader.read_i32()?; // type_modifier
+                        _ = self.reader.read_i16()?; // mode
                     }
                 }
                 MessageCodes::DataRow => {
                     let num_fields = self.reader.read_i16()?;
-                    for i in 0..num_fields {
+                    for _ in 0..num_fields {
                         let length = self.reader.read_i32()? as usize;
-                        println!("{}({}): {}", i, length, self.reader.read_string(length)?);
+                        println!("{}", self.reader.read_string(length)?);
                     }
                 }
                 MessageCodes::CommandComplete => {

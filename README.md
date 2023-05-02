@@ -28,11 +28,9 @@
 `51 00 00 00  08  31 32 33 00` - "123" <br />
 `51 00 00 00  0f  31 32 33 34 35 36 37 38 39 30 00` - "1234567890" <br />
 
-- **51** - Q (Q - query?)
+- **51** - Q
 - **00 00 00 06** - query length  + 5(?)
 - **31** - query ...
 - **00** - one blank at the end
 
-## Responses:
-### Error:
-First bit is 45 (E)
+[PROTOCOL LINK](https://github.com/brianc/node-postgres/blob/master/packages/pg-protocol/src/parser.ts#L212)
