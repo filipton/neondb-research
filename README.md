@@ -17,8 +17,7 @@
 - **55 54 46 38** - "UTF8" (encoding) 
 - **00 00** - 2 x blank
 - **70** - p 
-- **00** - blank
-- **00 00 11** - passowrd length + 5 (?)
+- **00 00 00 11** - passowrd length + 5 (?)
 - **6b 61 43 66 64 79 50 34 65 55 33 6c** - "9l2FcxtusEYC" (password) 
 - **00** - blank
 
@@ -29,7 +28,7 @@
 `51 00 00 00  08  31 32 33 00` - "123" <br />
 `51 00 00 00  0f  31 32 33 34 35 36 37 38 39 30 00` - "1234567890" <br />
 
-- **51 00** - Q and blank (Q - query?)
-- **00 00 06** - query length  + 5(?)
-- **31** - query
+- **51** - Q (Q - query?)
+- **00 00 00 06** - query length  + 5(?)
+- **31** - query ...
 - **00** - one blank at the end
