@@ -73,7 +73,6 @@ impl<'a> Parser<'a> {
         while self.reader.has_next() {
             let code = self.reader.read_byte()?;
             let code = MessageCodes::from_byte(code)?;
-            println!("Code: {:?}", code);
 
             let length = self.reader.read_i32()?;
 

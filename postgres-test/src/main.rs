@@ -1,41 +1,69 @@
-use std::collections::HashMap;
-
-use anyhow::Result;
-use websocket::{ClientBuilder, Message, OwnedMessage};
+use std::net::TcpStream;
 
 use crate::buffer_writer::BufferWriter;
+use anyhow::Result;
+use websocket::{native_tls::TlsStream, sync::Client, ClientBuilder, Message, OwnedMessage};
+
 mod buffer_reader;
 mod buffer_writer;
 mod parser;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut ws_client =
-        ClientBuilder::new("wss://ep-steep-mud-147485.eu-central-1.aws.neon.tech/v2")
-            .unwrap()
-            .connect_secure(None)
-            .unwrap();
+    let mut ws_client = connect(
+        "filipton",
+        "9l2FcxtusEYC",
+        "neondb",
+        "wss://ep-steep-mud-147485.eu-central-1.aws.neon.tech/v2",
+    );
 
-    let login_query = generate_login("filipton", "9l2FcxtusEYC", "neondb");
-    let generate_query = generate_query("SELECT * FROM tests");
-
-    ws_client
-        .send_message(&Message::binary(login_query))
-        .unwrap();
-    for _ in 0..2 {
-        _ = ws_client.recv_message().unwrap();
-    }
+    let query = generate_query("SELECT * FROM tests");
+    let query2 = generate_query("INSERT INTO tests (id, val, tex) VALUES (31, 59455, 'vcxvxc')");
+    let query3 = generate_query("DELETE FROM tests WHERE id = 31");
 
     ws_client
-        .send_message(&Message::binary(generate_query))
+        .send_message(&Message::binary(query.clone()))
         .unwrap();
-    let msg = ws_client.recv_message().unwrap();
-    if let OwnedMessage::Binary(bytes) = msg {
-        let mut parser = parser::Parser::new(&bytes);
-        _ = parser.parse();
+
+    ws_client.send_message(&Message::binary(query2)).unwrap();
+    ws_client
+        .send_message(&Message::binary(query.clone()))
+        .unwrap();
+    ws_client.send_message(&Message::binary(query3)).unwrap();
+    ws_client.send_message(&Message::binary(query)).unwrap();
+
+    for _ in 0..5 {
+        let msg = ws_client.recv_message().unwrap();
+        if let OwnedMessage::Binary(bytes) = msg {
+            let mut parser = parser::Parser::new(&bytes);
+            _ = parser.parse();
+        }
+        println!("------------------");
     }
 
     Ok(())
+}
+
+fn connect(username: &str, password: &str, db: &str, ws_url: &str) -> Client<TlsStream<TcpStream>> {
+    let mut ws_client = ClientBuilder::new(ws_url)
+        .unwrap()
+        .connect_secure(None)
+        .unwrap();
+
+    let login_query = generate_login(username, password, db);
+    ws_client
+        .send_message(&Message::binary(login_query))
+        .unwrap();
+
+    for _ in 0..2 {
+        let msg = ws_client.recv_message().unwrap();
+        if let OwnedMessage::Binary(bytes) = msg {
+            let mut parser = parser::Parser::new(&bytes);
+            _ = parser.parse();
+        }
+    }
+
+    ws_client
 }
 
 fn generate_login(username: &str, password: &str, db: &str) -> Vec<u8> {
