@@ -1,0 +1,7 @@
+{
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "vercel": "^28.18.5"
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "watch_cmd": "vercel dev",
+  "watch_dir": "./"
+}
