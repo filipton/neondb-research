@@ -1,7 +1,5 @@
 use crate::buffer_writer::BufferWriter;
 use anyhow::Result;
-use futures_util::{SinkExt, StreamExt};
-use tokio_tungstenite::{connect_async, tungstenite::Message};
 
 mod buffer_reader;
 mod buffer_writer;
@@ -14,34 +12,21 @@ pub enum Response {
 }
 */
 // AND THEN WHILE MAKING RESPONSE, WE ARE GETTING VECTOR OF RESPONSES
+// GET TILL "READY FOR QUERY"
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    let (ws_stream, _) = connect_async("wss://ep-steep-mud-147485.eu-central-1.aws.neon.tech/v2")
+fn main() -> Result<()> {
+    let task1 = wasm_rs_async_executor::single_threaded::spawn(async move {
+        let (mut ws, _wsio) = ws_stream_wasm::WsMeta::connect(
+            "wss://ep-steep-mud-147485.eu-central-1.aws.neon.tech/v2",
+            None,
+        )
         .await
         .unwrap();
 
-    let (mut write, read) = ws_stream.split();
-    write
-        .send(Message::binary(generate_login(
-            "filipton",
-            "9l2FcxtusEYC",
-            "neondb",
-        )))
-        .await?;
-    write
-        .send(Message::binary(generate_query("SELECT * FROM tests")))
-        .await?;
+        println!("Connected to server");
+    });
 
-    read.for_each(|msg| async {
-        if let Ok(msg) = msg {
-            if let Message::Binary(bytes) = msg {
-                let mut parser = parser::Parser::new(&bytes);
-                _ = parser.parse();
-            }
-        }
-    })
-    .await;
+    wasm_rs_async_executor::single_threaded::run(Some(task1.task()));
 
     /*
     let mut ws_client = connect(

@@ -10,5 +10,5 @@ anyhow = "1.0.71"
 base64 = "0.21"
 futures-util = "0.3.28"
 hex = "0.4.3"
-tokio = { version = "1.28.0", features = ["full", "io-util"] }
-tokio-tungstenite = { version = "0.18.0", features = [] }
+wasm-rs-async-executor = "0.9.0"
+ws_stream_wasm = "0.7.4"

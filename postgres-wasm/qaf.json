@@ -1,0 +1,4 @@
+{
+  "watch_cmd": "kill $(ps -eo pid,cmd | grep wrangler | grep -v grep | awk '{print $1}') ; sleep 2 ; wrangler dev --local",
+  "watch_dir": "./"
+}
