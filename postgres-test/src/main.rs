@@ -1,15 +1,49 @@
-use std::net::TcpStream;
-
 use crate::buffer_writer::BufferWriter;
 use anyhow::Result;
-use websocket::{native_tls::TlsStream, sync::Client, ClientBuilder, Message, OwnedMessage};
+use futures_util::{SinkExt, StreamExt};
+use tokio_tungstenite::{connect_async, tungstenite::Message};
 
 mod buffer_reader;
 mod buffer_writer;
 mod parser;
 
+/*
+pub enum Response {
+    DataRow(...),
+    ...
+}
+*/
+// AND THEN WHILE MAKING RESPONSE, WE ARE GETTING VECTOR OF RESPONSES
+
 #[tokio::main]
 async fn main() -> Result<()> {
+    let (ws_stream, _) = connect_async("wss://ep-steep-mud-147485.eu-central-1.aws.neon.tech/v2")
+        .await
+        .unwrap();
+
+    let (mut write, read) = ws_stream.split();
+    write
+        .send(Message::binary(generate_login(
+            "filipton",
+            "9l2FcxtusEYC",
+            "neondb",
+        )))
+        .await?;
+    write
+        .send(Message::binary(generate_query("SELECT * FROM tests")))
+        .await?;
+
+    read.for_each(|msg| async {
+        if let Ok(msg) = msg {
+            if let Message::Binary(bytes) = msg {
+                let mut parser = parser::Parser::new(&bytes);
+                _ = parser.parse();
+            }
+        }
+    })
+    .await;
+
+    /*
     let mut ws_client = connect(
         "filipton",
         "9l2FcxtusEYC",
@@ -31,19 +65,26 @@ async fn main() -> Result<()> {
         .unwrap();
     ws_client.send_message(&Message::binary(query3)).unwrap();
     ws_client.send_message(&Message::binary(query)).unwrap();
+    _ = ws_client.set_nonblocking(true);
 
-    for _ in 0..5 {
-        let msg = ws_client.recv_message().unwrap();
-        if let OwnedMessage::Binary(bytes) = msg {
-            let mut parser = parser::Parser::new(&bytes);
-            _ = parser.parse();
+    for _ in 0..15 {
+        let msg = ws_client.recv_message();
+        if let Ok(msg) = msg {
+            if let OwnedMessage::Binary(bytes) = msg {
+                let mut parser = parser::Parser::new(&bytes);
+                _ = parser.parse();
+            }
+            println!("------------------");
+        } else {
+            std::thread::sleep(std::time::Duration::from_millis(10));
         }
-        println!("------------------");
     }
+    */
 
     Ok(())
 }
 
+/*
 fn connect(username: &str, password: &str, db: &str, ws_url: &str) -> Client<TlsStream<TcpStream>> {
     let mut ws_client = ClientBuilder::new(ws_url)
         .unwrap()
@@ -65,29 +106,29 @@ fn connect(username: &str, password: &str, db: &str, ws_url: &str) -> Client<Tls
 
     ws_client
 }
+*/
 
 fn generate_login(username: &str, password: &str, db: &str) -> Vec<u8> {
-    let mut opts: Vec<(&str, &str)> = Vec::new();
-    opts.push(("user", username));
-    opts.push(("database", db));
-    opts.push(("client_encoding", "UTF8"));
+    let mut startup = BufferWriter::new();
+    startup
+        .write_i16(3)
+        .write_i16(0)
+        .write_cstring("user")
+        .write_cstring(username)
+        .write_cstring("database")
+        .write_cstring(db)
+        .write_cstring("client_encoding")
+        .write_cstring("UTF8");
+    let startup_length = startup.get_length();
 
-    let mut writer = buffer_writer::BufferWriter::new();
-    writer.write_i16(3).write_i16(0);
+    let password = BufferWriter::new()
+        .write_cstring(password)
+        .flush(Some(b'p'));
 
-    for (key, value) in opts {
-        writer.write_cstring(&key).write_cstring(&value);
-    }
-
-    let mut password_writer = buffer_writer::BufferWriter::new();
-    let password = password_writer.write_cstring(password).flush(Some(b'p'));
-
-    let length = writer.get_length();
-    let body = writer.write_cstring("").add(&password).flush(None);
-
+    let startup_password = startup.write_cstring("").add(&password).flush(None);
     let res = BufferWriter::new()
-        .write_i32(length as i32)
-        .add(&body)
+        .write_i32(startup_length as i32)
+        .add(&startup_password)
         .flush(None);
 
     res
