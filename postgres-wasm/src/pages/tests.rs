@@ -1,31 +1,17 @@
+use futures_util::StreamExt;
 use qaf_macros::{get, on};
-use worker::{
-    console_log, EventStream, Request, Response, Result, RouteContext, WebSocket, WebSocketPair,
-    WebsocketEvent,
-};
+use reqwasm::websocket::{futures::WebSocket, State};
+use worker::{console_log, js_sys, EventStream, Request, Response, Result, RouteContext};
 
 #[get]
 pub async fn index(_req: Request, _ctx: RouteContext<()>) -> Result<Response> {
-    let ws = WebSocket::connect("ws://127.0.0.1:8080".parse()?).await?;
-
-    // It's important that we call this before we send our first message, otherwise we will
-    // not have any event listeners on the socket to receive the echoed message.
-    let mut event_stream = ws.events()?;
-
-    ws.accept()?;
-    ws.send_with_str("Hello, world!")?;
-
-    /*
-    while let Some(event) = event_stream.next().await {
-        let event = event?;
-
-        if let WebsocketEvent::Message(msg) = event {
-            if let Some(text) = msg.text() {
-                return Response::ok(text);
-            }
-        }
+    console_log!("Hello from Rust!");
+    let ws = WebSocket::open("wss://echo.filipton.space/ws").unwrap();
+    let mut t = 0;
+    while matches!(ws.state(), State::Connecting) {
+        gloo_timers::future::sleep(std::time::Duration::from_millis(10)).await;
+        t += 10;
     }
-    */
 
-    Response::error("never got a message echoed back :(", 500)
+    Response::ok(format!("WS: {:?}, T: {}", ws.state(), t))
 }
